@@ -1,0 +1,4 @@
+com/sanctuary/sanctuary_backend/service/SightingService.class
+com/sanctuary/sanctuary_backend/repository/SightingRepository.class
+com/sanctuary/sanctuary_backend/SanctuaryBackendApplication.class
+com/sanctuary/sanctuary_backend/model/Sighting.class

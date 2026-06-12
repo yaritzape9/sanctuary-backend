@@ -1,0 +1,47 @@
+package com.sanctuary.sanctuary_backend.model;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+@Entity
+@Table(name = "sightings")
+public class Sighting {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
+    @Column(nullable = false)
+    private String location;
+
+    @Column(nullable = false, length = 1000)
+    private String description;
+
+    @Column(nullable = false)
+    private LocalDate date;
+
+    @Column(nullable = false)
+    private LocalTime time;
+
+    @Column(nullable = false)
+    private Double lat;
+
+    @Column(nullable = false)
+    private Double lng;
+
+    @Column(nullable = false)
+    private String status = "pending";
+
+    @ElementCollection
+    @CollectionTable(name = "sighting_confirmations", joinColumns = @JoinColumn(name = "sighting_id"))
+    @Column(name = "user_id")
+    private List<String> confirmations = new ArrayList<>();
+
+    @Column(nullable = false)
+    private String reportedBy;
+}
