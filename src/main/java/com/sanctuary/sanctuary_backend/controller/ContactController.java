@@ -2,6 +2,7 @@ package com.sanctuary.sanctuary_backend.controller;
 
 import com.sanctuary.sanctuary_backend.model.Contact;
 import com.sanctuary.sanctuary_backend.service.ContactService;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,33 +11,75 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/contacts")
-@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:3000")
 public class ContactController {
 
-    private final ContactService service;
+    private final ContactService contactService;
 
     @GetMapping("/{userId}")
-    public List<Contact> getByUser(@PathVariable String userId) {
-        return service.getByUser(userId);
+    public ResponseEntity<List<Contact>> getContacts(@PathVariable String userId) {
+        return ResponseEntity.ok(contactService.getContacts(userId));
     }
 
     @PostMapping
-    public ResponseEntity<Contact> create(@RequestBody Contact contact) {
-        return ResponseEntity.ok(service.create(contact));
+    public ResponseEntity<?> addContact(@RequestBody AddContactRequest request) {
+        try {
+            Contact saved = contactService.addContact(
+                request.getUserId(),
+                request.getName(),
+                request.getPhone()
+            );
+            return ResponseEntity.ok(saved);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Contact> update(
-        @PathVariable String id,
-        @RequestBody Contact contact
-    ) {
-        return ResponseEntity.ok(service.update(id, contact));
+    @PutMapping("/{contactId}")
+    public ResponseEntity<?> updateContact(
+            @PathVariable String contactId,
+            @RequestBody UpdateContactRequest request) {
+        try {
+            Contact updated = contactService.updateContact(
+                contactId,
+                request.getUserId(),
+                request.getName(),
+                request.getPhone()
+            );
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        service.delete(id);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/{contactId}")
+    public ResponseEntity<?> deleteContact(
+            @PathVariable String contactId,
+            @RequestParam String userId) {
+        try {
+            contactService.deleteContact(contactId, userId);
+            return ResponseEntity.ok("Contact deleted");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        }
+    }
+
+    @Data
+    static class AddContactRequest {
+        private String userId;
+        private String name;
+        private String phone;
+    }
+
+    @Data
+    static class UpdateContactRequest {
+        private String userId;
+        private String name;
+        private String phone;
     }
 }

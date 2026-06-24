@@ -1,5 +1,6 @@
 com/sanctuary/sanctuary_backend/SanctuaryBackendApplication.class
 com/sanctuary/sanctuary_backend/controller/PanicController$SafeRequest.class
+com/sanctuary/sanctuary_backend/controller/ContactController$UpdateContactRequest.class
 com/sanctuary/sanctuary_backend/exception/ApiException.class
 com/sanctuary/sanctuary_backend/controller/PanicController$TriggerRequest.class
 com/sanctuary/sanctuary_backend/controller/PanicController.class
@@ -12,4 +13,5 @@ com/sanctuary/sanctuary_backend/controller/ContactController.class
 com/sanctuary/sanctuary_backend/controller/SightingController.class
 com/sanctuary/sanctuary_backend/model/Sighting.class
 com/sanctuary/sanctuary_backend/config/TwilioConfig.class
+com/sanctuary/sanctuary_backend/controller/ContactController$AddContactRequest.class
 com/sanctuary/sanctuary_backend/service/PanicService.class
