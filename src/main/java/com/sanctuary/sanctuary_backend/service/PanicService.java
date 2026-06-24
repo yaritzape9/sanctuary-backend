@@ -19,10 +19,11 @@ public class PanicService {
     private final TwilioConfig twilioConfig;
 
     public void triggerAlert(String userId, Double lat, Double lng) {
-        List<Contact> contacts = contactService.getByUser(userId);
+        List<Contact> contacts = contactService.getContacts(userId);
 
         if (contacts.isEmpty()) {
-            throw new RuntimeException("No emergency contacts found for user: " + userId);
+            log.warn("No emergency contacts found for user: {}", userId);
+            return;
         }
 
         String locationUrl = "https://maps.google.com/?q=" + lat + "," + lng;
@@ -32,7 +33,7 @@ public class PanicService {
     }
 
     public void sendAllClear(String userId) {
-        List<Contact> contacts = contactService.getByUser(userId);
+        List<Contact> contacts = contactService.getContacts(userId);
 
         if (contacts.isEmpty()) {
             throw new RuntimeException("No emergency contacts found for user: " + userId);

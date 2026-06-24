@@ -2,6 +2,7 @@ package com.sanctuary.sanctuary_backend.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -21,5 +22,13 @@ public class Contact {
     @Column(nullable = false)
     private String phone;
 
-    private String relationship;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+    }
 }
