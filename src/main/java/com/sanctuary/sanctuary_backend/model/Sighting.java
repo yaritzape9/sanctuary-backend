@@ -2,8 +2,7 @@ package com.sanctuary.sanctuary_backend.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,12 +22,6 @@ public class Sighting {
     private String description;
 
     @Column(nullable = false)
-    private LocalDate date;
-
-    @Column(nullable = false)
-    private LocalTime time;
-
-    @Column(nullable = false)
     private Double lat;
 
     @Column(nullable = false)
@@ -37,6 +30,9 @@ public class Sighting {
     @Column(nullable = false)
     private String status = "pending";
 
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
     @ElementCollection
     @CollectionTable(name = "sighting_confirmations", joinColumns = @JoinColumn(name = "sighting_id"))
     @Column(name = "user_id")
@@ -44,4 +40,9 @@ public class Sighting {
 
     @Column(nullable = false)
     private String reportedBy;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 }
