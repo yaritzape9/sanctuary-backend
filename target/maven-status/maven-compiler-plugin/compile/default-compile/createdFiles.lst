@@ -12,6 +12,7 @@ com/sanctuary/sanctuary_backend/repository/SightingRepository.class
 com/sanctuary/sanctuary_backend/controller/ContactController.class
 com/sanctuary/sanctuary_backend/controller/SightingController.class
 com/sanctuary/sanctuary_backend/model/Sighting.class
+com/sanctuary/sanctuary_backend/dto/SightingResponse.class
 com/sanctuary/sanctuary_backend/config/TwilioConfig.class
 com/sanctuary/sanctuary_backend/controller/ContactController$AddContactRequest.class
 com/sanctuary/sanctuary_backend/service/PanicService.class
