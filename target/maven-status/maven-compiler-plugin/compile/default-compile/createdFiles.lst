@@ -18,6 +18,7 @@ com/sanctuary/sanctuary_backend/controller/PanicController$TriggerRequest.class
 com/sanctuary/sanctuary_backend/repository/ContactRepository.class
 com/sanctuary/sanctuary_backend/model/Contact.class
 com/sanctuary/sanctuary_backend/repository/UserRepository.class
+com/sanctuary/sanctuary_backend/config/JwtAuthFilter.class
 com/sanctuary/sanctuary_backend/repository/SightingRepository.class
 com/sanctuary/sanctuary_backend/controller/ContactController.class
 com/sanctuary/sanctuary_backend/model/Sighting.class

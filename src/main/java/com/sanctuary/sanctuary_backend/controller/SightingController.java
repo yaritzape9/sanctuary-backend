@@ -5,9 +5,9 @@ import com.sanctuary.sanctuary_backend.model.Sighting;
 import com.sanctuary.sanctuary_backend.service.SightingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/sightings")
@@ -32,8 +32,10 @@ public class SightingController {
     @PostMapping("/{id}/confirm")
     public ResponseEntity<SightingResponse> confirm(
         @PathVariable String id,
-        @RequestBody Map<String, String> body
+        Authentication authentication
     ) {
-        return ResponseEntity.ok(SightingResponse.from(service.confirm(id, body.get("userId"))));
+        // userId comes from the validated JWT, never from the request body
+        String userId = authentication.getName();
+        return ResponseEntity.ok(SightingResponse.from(service.confirm(id, userId)));
     }
 }
