@@ -12,4 +12,5 @@ target/
 *.DS_Store
 
 # Spring Boot local config overrides
-application-local.properties
+application-local.propertiestarget/
+target/

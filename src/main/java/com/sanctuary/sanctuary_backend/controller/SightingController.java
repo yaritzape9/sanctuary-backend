@@ -25,7 +25,11 @@ public class SightingController {
     }
 
     @PostMapping
-    public ResponseEntity<SightingResponse> create(@RequestBody Sighting sighting) {
+    public ResponseEntity<SightingResponse> create(
+        @RequestBody Sighting sighting,
+        Authentication authentication
+    ) {
+        sighting.setReportedBy(authentication.getName());
         return ResponseEntity.ok(SightingResponse.from(service.create(sighting)));
     }
 

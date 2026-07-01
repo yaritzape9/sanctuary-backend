@@ -3,6 +3,7 @@ package com.sanctuary.sanctuary_backend.config;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -11,10 +12,13 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    // Secret key used to sign tokens — in production this moves to application.properties
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    @Value("${jwt.secret}")
+    private String secret;
 
-    // Token is valid for 7 days
+    private Key getKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes());
+    }
+
     private final long EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000L;
 
     public String generateToken(String userId) {
@@ -22,13 +26,13 @@ public class JwtUtil {
             .setSubject(userId)
             .setIssuedAt(new Date())
             .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
-            .signWith(key)
+            .signWith(getKey())
             .compact();
     }
 
     public String extractUserId(String token) {
         return Jwts.parserBuilder()
-            .setSigningKey(key)
+            .setSigningKey(getKey())
             .build()
             .parseClaimsJws(token)
             .getBody()
