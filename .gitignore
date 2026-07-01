@@ -13,3 +13,4 @@ target/
 
 # Spring Boot local config overrides
 application-local.propertiestarget/
+target/
