@@ -1,6 +1,7 @@
 package com.sanctuary.sanctuary_backend.service;
 
 import com.sanctuary.sanctuary_backend.config.JwtUtil;
+import com.sanctuary.sanctuary_backend.model.AuthProvider;
 import com.sanctuary.sanctuary_backend.model.User;
 import com.sanctuary.sanctuary_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class AuthService {
         user.setEmail(email);
         // Never store plain text passwords — hash before saving
         user.setPassword(passwordEncoder.encode(password));
+        user.setProvider(AuthProvider.LOCAL);
 
         User saved = userRepository.save(user);
 
@@ -39,6 +41,10 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
+        if (user.getPassword() == null) {
+            throw new RuntimeException("This account uses Google sign-in. Please log in with Google.");
+        }
+
         // Compare submitted password against the stored hash
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Invalid credentials");
@@ -47,4 +53,30 @@ public class AuthService {
         String token = jwtUtil.generateToken(user.getId());
         return Map.of("userId", user.getId(), "token", token);
     }
+
+    public Map<String, String> oauthSync(String email, String name, String googleId) {
+    // Fast path: returning Google user
+    User user = userRepository.findByGoogleId(googleId).orElse(null);
+
+    if (user == null) {
+        // Not found by googleId — check if this email already has a local account
+        user = userRepository.findByEmail(email).orElse(null);
+
+        if (user != null) {
+            // Auto-link: attach Google identity to the existing local account
+            user.setGoogleId(googleId);
+            userRepository.save(user);
+        } else {
+            // Brand new user, Google-only, no password
+            user = new User();
+            user.setEmail(email);
+            user.setGoogleId(googleId);
+            user.setProvider(AuthProvider.GOOGLE);
+            user = userRepository.save(user);
+        }
+    }
+
+    String token = jwtUtil.generateToken(user.getId());
+    return Map.of("userId", user.getId(), "token", token);
+}
 }

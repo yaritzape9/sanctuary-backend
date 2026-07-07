@@ -34,8 +34,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             if (jwtUtil.isValid(token)) {
                 String userId = jwtUtil.extractUserId(token);
-
-                // Set the authenticated user so controllers can read it via SecurityContextHolder
                 var auth = new UsernamePasswordAuthenticationToken(
                     userId, null, Collections.emptyList()
                 );

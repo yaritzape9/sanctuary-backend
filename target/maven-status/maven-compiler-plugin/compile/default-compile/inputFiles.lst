@@ -1,6 +1,7 @@
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/repository/UserRepository.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/controller/ContactController.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/model/Contact.java
+/Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/model/AuthProvider.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/repository/ContactRepository.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/config/TwilioConfig.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/config/JwtUtil.java
