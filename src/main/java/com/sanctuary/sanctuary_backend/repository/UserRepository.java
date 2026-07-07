@@ -8,4 +8,5 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     // Used during login to look up a user by email
     Optional<User> findByEmail(String email);
+    Optional<User> findByGoogleId(String googleId);
 }

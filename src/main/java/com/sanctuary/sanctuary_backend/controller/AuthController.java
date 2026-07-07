@@ -30,4 +30,12 @@ public class AuthController {
             body.get("password")
         ));
     }
+    @PostMapping("/oauth-sync")
+    public ResponseEntity<Map<String, String>> oauthSync(@RequestBody Map<String, String> body) {
+        return ResponseEntity.ok(authService.oauthSync(
+            body.get("email"),
+            body.get("name"),
+            body.get("googleId")
+        ));
+    }
 }
