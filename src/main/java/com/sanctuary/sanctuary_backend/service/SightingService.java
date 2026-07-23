@@ -2,6 +2,8 @@ package com.sanctuary.sanctuary_backend.service;
 
 import com.sanctuary.sanctuary_backend.model.Sighting;
 import com.sanctuary.sanctuary_backend.repository.SightingRepository;
+import com.sanctuary.sanctuary_backend.exception.SightingNotFoundException;
+import com.sanctuary.sanctuary_backend.exception.DuplicateConfirmationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -27,11 +29,10 @@ public class SightingService {
 
     public Sighting confirm(String id, String userId) {
         Sighting s = repo.findById(id)
-            .orElseThrow(() -> new RuntimeException("Sighting not found"));
+            .orElseThrow(() -> new SightingNotFoundException("Sighting not found"));
 
-        // Block duplicate confirmations — one per user enforced here, not in the DB
         if (s.getConfirmations().contains(userId)) {
-            throw new RuntimeException("Already confirmed");
+            throw new DuplicateConfirmationException("Already confirmed");
         }
 
         s.getConfirmations().add(userId);
