@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.http.MediaType;
 import lombok.extern.slf4j.Slf4j;
 import java.time.Instant;
 
@@ -34,13 +35,15 @@ public class GlobalExceptionHandler {
     }
 
     private ResponseEntity<ErrorResponse> buildResponse(
-            HttpStatus status, String message, HttpServletRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                status.value(),
-                message,
-                Instant.now(),
-                request.getRequestURI()
-        );
-        return ResponseEntity.status(status).body(errorResponse);
+                HttpStatus status, String message, HttpServletRequest request) {
+            ErrorResponse errorResponse = new ErrorResponse(
+                    status.value(),
+                    message,
+                    Instant.now(),
+                    request.getRequestURI()
+            );
+            return ResponseEntity.status(status)
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .body(errorResponse);
     }
 }
