@@ -1,9 +1,6 @@
 package com.sanctuary.sanctuary_backend.service;
 
-import com.sanctuary.sanctuary_backend.config.TwilioConfig;
 import com.sanctuary.sanctuary_backend.model.Contact;
-import com.twilio.rest.api.v2010.account.Message;
-import com.twilio.type.PhoneNumber;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,7 +13,7 @@ import java.util.List;
 public class PanicService {
 
     private final ContactService contactService;
-    private final TwilioConfig twilioConfig;
+    private final SmsSender smsSender;
 
     public void triggerAlert(String userId, Double lat, Double lng) {
         List<Contact> contacts = contactService.getContacts(userId);
@@ -47,11 +44,7 @@ public class PanicService {
     private void sendToAll(List<Contact> contacts, String body) {
         for (Contact contact : contacts) {
             try {
-                Message.creator(
-                    new PhoneNumber(contact.getPhone()),
-                    new PhoneNumber(twilioConfig.getPhoneNumber()),
-                    body
-                ).create();
+                smsSender.send(contact.getPhone(), body);
                 log.info("SMS sent to {}", contact.getPhone());
             } catch (Exception e) {
                 log.error("Failed to send SMS to {}: {}", contact.getPhone(), e.getMessage());
