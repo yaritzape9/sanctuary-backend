@@ -1,9 +1,13 @@
 com/sanctuary/sanctuary_backend/config/SecurityConfig.class
+com/sanctuary/sanctuary_backend/exception/ErrorResponse.class
+com/sanctuary/sanctuary_backend/exception/GlobalExceptionHandler.class
 com/sanctuary/sanctuary_backend/model/User.class
 com/sanctuary/sanctuary_backend/controller/PanicController.class
 com/sanctuary/sanctuary_backend/service/ContactService.class
+com/sanctuary/sanctuary_backend/exception/DuplicateConfirmationException.class
 com/sanctuary/sanctuary_backend/service/SightingService.class
 com/sanctuary/sanctuary_backend/controller/SightingController.class
+com/sanctuary/sanctuary_backend/exception/SightingNotFoundException.class
 com/sanctuary/sanctuary_backend/config/TwilioConfig.class
 com/sanctuary/sanctuary_backend/controller/ContactController$AddContactRequest.class
 com/sanctuary/sanctuary_backend/service/PanicService.class
