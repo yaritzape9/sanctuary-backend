@@ -38,7 +38,6 @@ class GlobalExceptionHandlerTest {
     @Test
     void sightingNotFoundException_returns404() throws Exception {
         mockMvc.perform(get("/test/not-found"))
-                .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message").value("Sighting not found"))
