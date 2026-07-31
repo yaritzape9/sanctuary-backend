@@ -22,6 +22,10 @@ public class Contact {
     @Column(nullable = false)
     private String phone;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Relationship relationship;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

@@ -1,6 +1,7 @@
 package com.sanctuary.sanctuary_backend.service;
 
 import com.sanctuary.sanctuary_backend.model.Contact;
+import com.sanctuary.sanctuary_backend.model.Relationship;
 import com.sanctuary.sanctuary_backend.repository.ContactRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,7 @@ public class ContactService {
         return repo.findByUserId(userId);
     }
 
-    public Contact addContact(String userId, String name, String phone) {
+    public Contact addContact(String userId, String name, String phone, Relationship relationship) {
         if (repo.countByUserId(userId) >= MAX_CONTACTS) {
             throw new IllegalStateException("Maximum of 5 emergency contacts allowed");
         }
@@ -28,12 +29,13 @@ public class ContactService {
         contact.setUserId(userId);
         contact.setName(name);
         contact.setPhone(phone);
+        contact.setRelationship(relationship);
         Contact saved = repo.save(contact);
         log.info("Contact added for user {}: {}", userId, saved.getId());
         return saved;
     }
 
-    public Contact updateContact(String contactId, String userId, String name, String phone) {
+    public Contact updateContact(String contactId, String userId, String name, String phone, Relationship relationship) {
         Contact contact = repo.findById(contactId)
             .orElseThrow(() -> new IllegalArgumentException("Contact not found"));
         if (!contact.getUserId().equals(userId)) {
@@ -41,10 +43,12 @@ public class ContactService {
         }
         contact.setName(name);
         contact.setPhone(phone);
+        contact.setRelationship(relationship);
         Contact updated = repo.save(contact);
         log.info("Contact {} updated by user {}", contactId, userId);
         return updated;
     }
+
 
     public void deleteContact(String contactId, String userId) {
         Contact contact = repo.findById(contactId)
