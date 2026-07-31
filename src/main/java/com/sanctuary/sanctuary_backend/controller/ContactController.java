@@ -1,6 +1,7 @@
 package com.sanctuary.sanctuary_backend.controller;
 
 import com.sanctuary.sanctuary_backend.model.Contact;
+import com.sanctuary.sanctuary_backend.model.Relationship;
 import com.sanctuary.sanctuary_backend.service.ContactService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,8 @@ public class ContactController {
             Contact saved = contactService.addContact(
                 request.getUserId(),
                 request.getName(),
-                request.getPhone()
+                request.getPhone(),
+                request.getRelationship()
             );
             return ResponseEntity.ok(saved);
         } catch (IllegalStateException e) {
@@ -45,7 +47,8 @@ public class ContactController {
                 contactId,
                 request.getUserId(),
                 request.getName(),
-                request.getPhone()
+                request.getPhone(),
+                request.getRelationship()
             );
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
@@ -74,6 +77,7 @@ public class ContactController {
         private String userId;
         private String name;
         private String phone;
+        private Relationship relationship;
     }
 
     @Data
@@ -81,5 +85,6 @@ public class ContactController {
         private String userId;
         private String name;
         private String phone;
+        private Relationship relationship;
     }
 }

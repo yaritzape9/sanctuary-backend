@@ -4,6 +4,7 @@ com/sanctuary/sanctuary_backend/exception/GlobalExceptionHandler.class
 com/sanctuary/sanctuary_backend/model/User.class
 com/sanctuary/sanctuary_backend/controller/PanicController.class
 com/sanctuary/sanctuary_backend/service/ContactService.class
+com/sanctuary/sanctuary_backend/model/Relationship.class
 com/sanctuary/sanctuary_backend/exception/DuplicateConfirmationException.class
 com/sanctuary/sanctuary_backend/service/SightingService.class
 com/sanctuary/sanctuary_backend/controller/SightingController.class
