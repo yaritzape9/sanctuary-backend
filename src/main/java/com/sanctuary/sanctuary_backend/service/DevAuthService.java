@@ -1,5 +1,6 @@
 package com.sanctuary.sanctuary_backend.service;
 
+import com.sanctuary.sanctuary_backend.config.JwtUtil;
 import com.sanctuary.sanctuary_backend.model.User;
 import com.sanctuary.sanctuary_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
