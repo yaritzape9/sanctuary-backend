@@ -35,6 +35,13 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, "Resource not found", request);
     }
     
+    @ExceptionHandler(UnauthorizedSightingActionException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedSightingAction(
+        UnauthorizedSightingActionException ex, HttpServletRequest request
+    ) {
+        return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex, HttpServletRequest request) {

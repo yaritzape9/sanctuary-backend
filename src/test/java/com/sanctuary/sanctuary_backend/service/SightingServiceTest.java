@@ -43,13 +43,13 @@ class SightingServiceTest {
 
     @Test
     void getAll_returnsAllSightingsFromRepo() {
-        when(repo.findAll()).thenReturn(List.of(sighting));
+        when(repo.findByRemovedFalse()).thenReturn(List.of(sighting));
 
         List<Sighting> result = service.getAll();
 
         assertEquals(1, result.size());
         assertEquals("sighting-1", result.get(0).getId());
-        verify(repo, times(1)).findAll();
+        verify(repo, times(1)).findByRemovedFalse();
     }
 
     @Test
@@ -130,5 +130,38 @@ class SightingServiceTest {
 
         assertEquals(11, result.getConfirmations().size());
         assertEquals("confirmed", result.getStatus());
+    }
+
+    @Test
+    void deleteSighting_ownerDeletesOwnSighting_setsRemovedTrue() {
+        when(repo.findById("sighting-1")).thenReturn(Optional.of(sighting));
+        when(repo.save(any(Sighting.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.deleteSighting("sighting-1", "user-reporter");
+
+        assertTrue(sighting.getRemoved());
+        verify(repo, times(1)).save(sighting);
+    }
+
+    @Test
+    void deleteSighting_nonOwnerAttemptsDelete_throwsUnauthorized() {
+        when(repo.findById("sighting-1")).thenReturn(Optional.of(sighting));
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+            () -> service.deleteSighting("sighting-1", "user-not-the-reporter"));
+
+        assertEquals("You can only delete sightings you reported", ex.getMessage());
+        verify(repo, never()).save(any());
+    }
+
+    @Test
+    void deleteSighting_sightingDoesNotExist_throwsSightingNotFound() {
+        when(repo.findById("missing-id")).thenReturn(Optional.empty());
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+            () -> service.deleteSighting("missing-id", "user-reporter"));
+
+        assertEquals("Sighting not found", ex.getMessage());
+        verify(repo, never()).save(any());
     }
 }

@@ -40,6 +40,9 @@ public class Sighting {
 
     @Column(nullable = false)
     private String reportedBy;
+    
+    @Column(nullable = false)
+    private Boolean removed = false;
 
     @PrePersist
     protected void onCreate() {

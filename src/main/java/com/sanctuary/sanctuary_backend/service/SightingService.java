@@ -4,6 +4,7 @@ import com.sanctuary.sanctuary_backend.model.Sighting;
 import com.sanctuary.sanctuary_backend.repository.SightingRepository;
 import com.sanctuary.sanctuary_backend.exception.SightingNotFoundException;
 import com.sanctuary.sanctuary_backend.exception.DuplicateConfirmationException;
+import com.sanctuary.sanctuary_backend.exception.UnauthorizedSightingActionException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -18,7 +19,7 @@ public class SightingService {
     private static final int CONFIRM_THRESHOLD = 10;
 
     public List<Sighting> getAll() {
-        return repo.findAll();
+        return repo.findByRemovedFalse();
     }
 
     public Sighting create(Sighting sighting) {
@@ -43,5 +44,17 @@ public class SightingService {
         }
 
         return repo.save(s);
+    }
+
+    public void deleteSighting(String id, String userId) {
+        Sighting s = repo.findById(id)
+            .orElseThrow(() -> new SightingNotFoundException("Sighting not found"));
+
+        if (!s.getReportedBy().equals(userId)) {
+            throw new UnauthorizedSightingActionException("You can only delete sightings you reported");
+        }
+
+        s.setRemoved(true);
+        repo.save(s);
     }
 }
