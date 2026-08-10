@@ -42,4 +42,13 @@ public class SightingController {
         String userId = authentication.getName();
         return ResponseEntity.ok(SightingResponse.from(service.confirm(id, userId)));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+        @PathVariable String id,
+        Authentication authentication
+    ) {
+        service.deleteSighting(id, authentication.getName());
+        return ResponseEntity.noContent().build();
+    }
 }
