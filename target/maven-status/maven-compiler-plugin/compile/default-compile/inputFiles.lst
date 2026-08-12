@@ -28,5 +28,6 @@
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/model/Sighting.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/model/User.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/service/DevAuthService.java
+/Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/config/StompAuthInterceptor.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/controller/DevAuthController.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/controller/AuthController.java

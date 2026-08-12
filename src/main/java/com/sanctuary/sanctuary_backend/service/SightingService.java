@@ -5,6 +5,10 @@ import com.sanctuary.sanctuary_backend.repository.SightingRepository;
 import com.sanctuary.sanctuary_backend.exception.SightingNotFoundException;
 import com.sanctuary.sanctuary_backend.exception.DuplicateConfirmationException;
 import com.sanctuary.sanctuary_backend.exception.UnauthorizedSightingActionException;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import com.sanctuary.sanctuary_backend.dto.SightingResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -14,6 +18,7 @@ import java.util.List;
 public class SightingService {
 
     private final SightingRepository repo;
+    private final SimpMessagingTemplate messagingTemplate;
 
     // Threshold is intentionally not exposed to the frontend
     private static final int CONFIRM_THRESHOLD = 10;
@@ -25,7 +30,9 @@ public class SightingService {
     public Sighting create(Sighting sighting) {
         sighting.setStatus("pending");
         // createdAt is set automatically via @PrePersist in the model
-        return repo.save(sighting);
+        Sighting saved = repo.save(sighting);
+        broadcastAfterCommit("/topic/sightings/create", SightingResponse.from(saved));
+        return saved;
     }
 
     public Sighting confirm(String id, String userId) {
@@ -43,7 +50,9 @@ public class SightingService {
             s.setStatus("confirmed");
         }
 
-        return repo.save(s);
+        Sighting saved = repo.save(s);
+        broadcastAfterCommit("/topic/sightings/confirm", SightingResponse.from(saved)); 
+        return saved;
     }
 
     public void deleteSighting(String id, String userId) {
@@ -55,6 +64,20 @@ public class SightingService {
         }
 
         s.setRemoved(true);
-        repo.save(s);
+        Sighting saved = repo.save(s);
+        broadcastAfterCommit("/topic/sightings/delete", SightingResponse.from(saved));
     }
+
+    private void broadcastAfterCommit(String topic, SightingResponse response) {
+    if (TransactionSynchronizationManager.isSynchronizationActive()) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                messagingTemplate.convertAndSend(topic, response);
+            }
+        });
+    } else {
+        messagingTemplate.convertAndSend(topic, response);
+    }
+}
 }
