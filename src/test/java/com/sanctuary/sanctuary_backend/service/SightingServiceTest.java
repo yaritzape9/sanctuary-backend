@@ -5,7 +5,10 @@ import com.sanctuary.sanctuary_backend.repository.SightingRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.mockito.InjectMocks;
+import com.sanctuary.sanctuary_backend.dto.SightingResponse;
+import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -22,6 +25,9 @@ class SightingServiceTest {
 
     @Mock
     private SightingRepository repo;
+
+    @Mock
+    private SimpMessagingTemplate messagingTemplate;
 
     @InjectMocks
     private SightingService service;
@@ -63,6 +69,37 @@ class SightingServiceTest {
         verify(repo, times(1)).save(sighting);
     }
 
+    @Test
+    void create_broadcastsToCreateTopic() {
+        when(repo.save(any(Sighting.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.create(sighting);
+
+        verify(messagingTemplate, times(1))
+            .convertAndSend(eq("/topic/sightings/create"), any(SightingResponse.class));
+    }
+
+    @Test
+    void confirm_broadcastsToConfirmTopic() {
+        when(repo.findById("sighting-1")).thenReturn(Optional.of(sighting));
+        when(repo.save(any(Sighting.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.confirm("sighting-1", "user-1");
+
+        verify(messagingTemplate, times(1))
+            .convertAndSend(eq("/topic/sightings/confirm"), any(SightingResponse.class));
+    }
+
+    @Test
+    void deleteSighting_broadcastsToDeleteTopic() {
+        when(repo.findById("sighting-1")).thenReturn(Optional.of(sighting));
+        when(repo.save(any(Sighting.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.deleteSighting("sighting-1", "user-reporter");
+
+        verify(messagingTemplate, times(1))
+            .convertAndSend(eq("/topic/sightings/delete"), any(SightingResponse.class));
+    }
     @Test
     void confirm_throwsWhenSightingNotFound() {
         when(repo.findById("missing-id")).thenReturn(Optional.empty());
