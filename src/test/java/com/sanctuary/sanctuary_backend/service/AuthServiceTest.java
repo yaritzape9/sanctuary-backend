@@ -37,7 +37,7 @@ class AuthServiceTest {
     @BeforeEach
     void setUp() {
         // Common stub: token generation always succeeds once we get that far
-        lenient().when(jwtUtil.generateToken(any())).thenReturn("fake-jwt-token");
+        lenient().when(jwtUtil.generateToken(any(), any())).thenReturn("fake-jwt-token");
     }
 
     // ---------- register ----------

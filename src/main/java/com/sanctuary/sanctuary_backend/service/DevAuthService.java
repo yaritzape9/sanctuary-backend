@@ -2,6 +2,7 @@ package com.sanctuary.sanctuary_backend.service;
 
 import com.sanctuary.sanctuary_backend.config.JwtUtil;
 import com.sanctuary.sanctuary_backend.model.User;
+import com.sanctuary.sanctuary_backend.model.Role;
 import com.sanctuary.sanctuary_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
@@ -20,6 +21,13 @@ public class DevAuthService {
     public String mintTokenForEmail(String email) {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new NoSuchElementException("No user found with email: " + email));
-        return jwtUtil.generateToken(user.getId());
+        return jwtUtil.generateToken(user.getId(), user.getRole());
+    }
+
+    public User promoteToDev(String email) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new NoSuchElementException("No user found with email: " + email));
+        user.setRole(Role.DEV);
+        return userRepository.save(user);
     }
 }

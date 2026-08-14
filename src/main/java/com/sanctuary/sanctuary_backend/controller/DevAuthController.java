@@ -1,6 +1,7 @@
 package com.sanctuary.sanctuary_backend.controller;
 
 import com.sanctuary.sanctuary_backend.service.DevAuthService;
+import com.sanctuary.sanctuary_backend.model.User;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
@@ -25,6 +26,22 @@ public class DevAuthController {
         } catch (NoSuchElementException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PostMapping("/promote")
+    public ResponseEntity<?> promote(@RequestBody TokenRequest request) {
+        try {
+            User user = devAuthService.promoteToDev(request.getEmail());
+            return ResponseEntity.ok(new PromoteResponse(user.getEmail(), user.getRole().name()));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @Data
+    static class PromoteResponse {
+        private final String email;
+        private final String role;
     }
 
     @Data

@@ -4,6 +4,7 @@
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/model/AuthProvider.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/exception/SightingNotFoundException.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/config/TwilioConfig.java
+/Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/model/Role.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/exception/UnauthorizedSightingActionException.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/service/AuthService.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/config/JwtAuthFilter.java
@@ -25,6 +26,7 @@
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/service/SmsSender.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/exception/ApiException.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/exception/GlobalExceptionHandler.java
+/Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/config/WebSocketConfig.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/model/Sighting.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/model/User.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/service/DevAuthService.java
