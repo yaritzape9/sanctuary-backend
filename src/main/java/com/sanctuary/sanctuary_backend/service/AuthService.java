@@ -33,7 +33,7 @@ public class AuthService {
         User saved = userRepository.save(user);
 
         // Return userId + token so the frontend can start making authenticated requests immediately
-        String token = jwtUtil.generateToken(saved.getId());
+        String token = jwtUtil.generateToken(saved.getId(), saved.getRole());
         return Map.of("userId", saved.getId(), "token", token);
     }
 
@@ -50,7 +50,7 @@ public class AuthService {
             throw new RuntimeException("Invalid credentials");
         }
 
-        String token = jwtUtil.generateToken(user.getId());
+        String token = jwtUtil.generateToken(user.getId(), user.getRole());
         return Map.of("userId", user.getId(), "token", token);
     }
 
@@ -76,7 +76,7 @@ public class AuthService {
         }
     }
 
-    String token = jwtUtil.generateToken(user.getId());
+    String token = jwtUtil.generateToken(user.getId(), user.getRole());
     return Map.of("userId", user.getId(), "token", token);
 }
 }

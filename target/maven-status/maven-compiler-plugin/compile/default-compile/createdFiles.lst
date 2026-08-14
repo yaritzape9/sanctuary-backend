@@ -8,10 +8,12 @@ com/sanctuary/sanctuary_backend/service/ContactService.class
 com/sanctuary/sanctuary_backend/model/Relationship.class
 com/sanctuary/sanctuary_backend/exception/DuplicateConfirmationException.class
 com/sanctuary/sanctuary_backend/service/SightingService.class
+com/sanctuary/sanctuary_backend/config/WebSocketConfig.class
 com/sanctuary/sanctuary_backend/controller/SightingController.class
 com/sanctuary/sanctuary_backend/service/TwilioSmsSender.class
 com/sanctuary/sanctuary_backend/exception/SightingNotFoundException.class
 com/sanctuary/sanctuary_backend/config/TwilioConfig.class
+com/sanctuary/sanctuary_backend/controller/DevAuthController$PromoteResponse.class
 com/sanctuary/sanctuary_backend/service/SmsSender.class
 com/sanctuary/sanctuary_backend/controller/DevAuthController$TokenRequest.class
 com/sanctuary/sanctuary_backend/controller/ContactController$AddContactRequest.class
@@ -38,3 +40,4 @@ com/sanctuary/sanctuary_backend/dto/SightingResponse.class
 com/sanctuary/sanctuary_backend/service/SightingService$1.class
 com/sanctuary/sanctuary_backend/controller/DevAuthController.class
 com/sanctuary/sanctuary_backend/controller/DevAuthController$TokenResponse.class
+com/sanctuary/sanctuary_backend/model/Role.class

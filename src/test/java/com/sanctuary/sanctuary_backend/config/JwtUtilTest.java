@@ -1,5 +1,6 @@
 package com.sanctuary.sanctuary_backend.config;
 
+import com.sanctuary.sanctuary_backend.model.Role;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -19,26 +20,32 @@ class JwtUtilTest {
 
     @Test
     void generateToken_returnsNonEmptyToken() {
-        String token = jwtUtil.generateToken("user-123");
+        String token = jwtUtil.generateToken("user-123", Role.USER);
         assertNotNull(token);
         assertFalse(token.isEmpty());
     }
 
     @Test
     void extractUserId_returnsOriginalUserId() {
-        String token = jwtUtil.generateToken("user-123");
+        String token = jwtUtil.generateToken("user-123", Role.USER);
         assertEquals("user-123", jwtUtil.extractUserId(token));
     }
 
     @Test
+    void extractRole_returnsOriginalRole() {
+        String token = jwtUtil.generateToken("user-123", Role.DEV);
+        assertEquals("DEV", jwtUtil.extractRole(token));
+    }
+
+    @Test
     void isValid_returnsTrueForValidToken() {
-        String token = jwtUtil.generateToken("user-123");
+        String token = jwtUtil.generateToken("user-123", Role.USER);
         assertTrue(jwtUtil.isValid(token));
     }
 
     @Test
     void isValid_returnsFalseForTamperedToken() {
-        String token = jwtUtil.generateToken("user-123");
+        String token = jwtUtil.generateToken("user-123", Role.USER);
         String tampered = token.substring(0, token.length() - 2) + "xx";
         assertFalse(jwtUtil.isValid(tampered));
     }

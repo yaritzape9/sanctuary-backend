@@ -26,11 +26,19 @@ public class User {
     @Column(nullable = false)
     private AuthProvider provider;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true)
+    private Role role;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
 
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        if (this.role == null) {
+            this.role = Role.USER;
+        }
     }
 }
