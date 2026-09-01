@@ -33,6 +33,11 @@ jobs:
           java-version: "17"
           cache: "maven"
 
+      - name: Check config file locations
+        run: |
+          chmod +x scripts/check-config-location.sh
+          ./scripts/check-config-location.sh
+
       - name: Run tests
         env:
           JWT_SECRET: ci-test-secret-do-not-use-in-prod
