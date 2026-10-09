@@ -6,6 +6,7 @@ import com.sanctuary.sanctuary_backend.service.ContactService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,16 +19,19 @@ public class ContactController {
 
     private final ContactService contactService;
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<List<Contact>> getContacts(@PathVariable String userId) {
-        return ResponseEntity.ok(contactService.getContacts(userId));
+    // userId always comes from the validated JWT, never from the path, body or query
+    @GetMapping
+    public ResponseEntity<List<Contact>> getContacts(Authentication authentication) {
+        return ResponseEntity.ok(contactService.getContacts(authentication.getName()));
     }
 
     @PostMapping
-    public ResponseEntity<?> addContact(@RequestBody AddContactRequest request) {
+    public ResponseEntity<?> addContact(
+            @RequestBody AddContactRequest request,
+            Authentication authentication) {
         try {
             Contact saved = contactService.addContact(
-                request.getUserId(),
+                authentication.getName(),
                 request.getName(),
                 request.getPhone(),
                 request.getRelationship()
@@ -41,11 +45,12 @@ public class ContactController {
     @PutMapping("/{contactId}")
     public ResponseEntity<?> updateContact(
             @PathVariable String contactId,
-            @RequestBody UpdateContactRequest request) {
+            @RequestBody UpdateContactRequest request,
+            Authentication authentication) {
         try {
             Contact updated = contactService.updateContact(
                 contactId,
-                request.getUserId(),
+                authentication.getName(),
                 request.getName(),
                 request.getPhone(),
                 request.getRelationship()
@@ -61,9 +66,9 @@ public class ContactController {
     @DeleteMapping("/{contactId}")
     public ResponseEntity<?> deleteContact(
             @PathVariable String contactId,
-            @RequestParam String userId) {
+            Authentication authentication) {
         try {
-            contactService.deleteContact(contactId, userId);
+            contactService.deleteContact(contactId, authentication.getName());
             return ResponseEntity.ok("Contact deleted");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
@@ -74,7 +79,6 @@ public class ContactController {
 
     @Data
     static class AddContactRequest {
-        private String userId;
         private String name;
         private String phone;
         private Relationship relationship;
@@ -82,7 +86,6 @@ public class ContactController {
 
     @Data
     static class UpdateContactRequest {
-        private String userId;
         private String name;
         private String phone;
         private Relationship relationship;
