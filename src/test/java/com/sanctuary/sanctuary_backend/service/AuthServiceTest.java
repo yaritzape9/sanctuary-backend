@@ -1,6 +1,10 @@
 package com.sanctuary.sanctuary_backend.service;
 
+import com.sanctuary.sanctuary_backend.config.GoogleTokenVerifier;
+import com.sanctuary.sanctuary_backend.config.GoogleTokenVerifier.GoogleIdentity;
 import com.sanctuary.sanctuary_backend.config.JwtUtil;
+import com.sanctuary.sanctuary_backend.exception.EmailAlreadyRegisteredException;
+import com.sanctuary.sanctuary_backend.exception.InvalidGoogleTokenException;
 import com.sanctuary.sanctuary_backend.model.AuthProvider;
 import com.sanctuary.sanctuary_backend.model.User;
 import com.sanctuary.sanctuary_backend.repository.UserRepository;
@@ -30,6 +34,9 @@ class AuthServiceTest {
 
     @Mock
     private JwtUtil jwtUtil;
+
+    @Mock
+    private GoogleTokenVerifier googleTokenVerifier;
 
     @InjectMocks
     private AuthService authService;
@@ -126,22 +133,40 @@ class AuthServiceTest {
 
     // ---------- oauthSync ----------
 
+    private void googleVerifies(String idToken, String googleId, String email) {
+        when(googleTokenVerifier.verify(idToken))
+            .thenReturn(Optional.of(new GoogleIdentity(googleId, email)));
+    }
+
+    @Test
+    void oauthSync_rejectsTokenGoogleDoesNotVerify() {
+        when(googleTokenVerifier.verify("forged-token")).thenReturn(Optional.empty());
+
+        assertThrows(InvalidGoogleTokenException.class, () -> authService.oauthSync("forged-token"));
+
+        verifyNoInteractions(userRepository);
+        verify(jwtUtil, never()).generateToken(any(), any());
+    }
+
     @Test
     void oauthSync_returnsExistingUser_whenGoogleIdMatches() {
+        googleVerifies("valid-token", "google-123", "user@test.com");
         User user = new User();
         user.setId("user-1");
         user.setGoogleId("google-123");
 
         when(userRepository.findByGoogleId("google-123")).thenReturn(Optional.of(user));
 
-        Map<String, String> result = authService.oauthSync("user@test.com", "User Name", "google-123");
+        Map<String, String> result = authService.oauthSync("valid-token");
 
         assertEquals("user-1", result.get("userId"));
         verify(userRepository, never()).save(any());
     }
 
     @Test
-    void oauthSync_autoLinksExistingLocalAccount_byEmail() {
+    void oauthSync_refusesToLinkExistingPasswordAccount() {
+        // Pre-hijacking guard: someone may have registered this email with a password first
+        googleVerifies("valid-token", "google-123", "user@test.com");
         User existingLocalUser = new User();
         existingLocalUser.setId("user-1");
         existingLocalUser.setEmail("user@test.com");
@@ -149,16 +174,16 @@ class AuthServiceTest {
 
         when(userRepository.findByGoogleId("google-123")).thenReturn(Optional.empty());
         when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(existingLocalUser));
-        when(userRepository.save(any(User.class))).thenReturn(existingLocalUser);
 
-        Map<String, String> result = authService.oauthSync("user@test.com", "User Name", "google-123");
+        assertThrows(EmailAlreadyRegisteredException.class, () -> authService.oauthSync("valid-token"));
 
-        assertEquals("user-1", result.get("userId"));
-        verify(userRepository).save(argThat(u -> "google-123".equals(u.getGoogleId())));
+        verify(userRepository, never()).save(any());
+        verify(jwtUtil, never()).generateToken(any(), any());
     }
 
     @Test
-    void oauthSync_createsNewUser_whenNoMatchFound() {
+    void oauthSync_createsNewUser_fromVerifiedTokenOnly() {
+        googleVerifies("valid-token", "google-123", "newperson@test.com");
         when(userRepository.findByGoogleId("google-123")).thenReturn(Optional.empty());
         when(userRepository.findByEmail("newperson@test.com")).thenReturn(Optional.empty());
 
@@ -166,7 +191,7 @@ class AuthServiceTest {
         newUser.setId("user-2");
         when(userRepository.save(any(User.class))).thenReturn(newUser);
 
-        Map<String, String> result = authService.oauthSync("newperson@test.com", "New Person", "google-123");
+        Map<String, String> result = authService.oauthSync("valid-token");
 
         assertEquals("user-2", result.get("userId"));
         verify(userRepository).save(argThat(u ->

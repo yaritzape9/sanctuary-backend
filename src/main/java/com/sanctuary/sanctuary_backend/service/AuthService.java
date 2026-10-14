@@ -1,6 +1,10 @@
 package com.sanctuary.sanctuary_backend.service;
 
+import com.sanctuary.sanctuary_backend.config.GoogleTokenVerifier;
+import com.sanctuary.sanctuary_backend.config.GoogleTokenVerifier.GoogleIdentity;
 import com.sanctuary.sanctuary_backend.config.JwtUtil;
+import com.sanctuary.sanctuary_backend.exception.EmailAlreadyRegisteredException;
+import com.sanctuary.sanctuary_backend.exception.InvalidGoogleTokenException;
 import com.sanctuary.sanctuary_backend.model.AuthProvider;
 import com.sanctuary.sanctuary_backend.model.User;
 import com.sanctuary.sanctuary_backend.repository.UserRepository;
@@ -17,6 +21,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final GoogleTokenVerifier googleTokenVerifier;
 
     public Map<String, String> register(String email, String password) {
         // Block duplicate emails before saving
@@ -54,29 +59,32 @@ public class AuthService {
         return Map.of("userId", user.getId(), "token", token);
     }
 
-    public Map<String, String> oauthSync(String email, String name, String googleId) {
-    // Fast path: returning Google user
-    User user = userRepository.findByGoogleId(googleId).orElse(null);
+    /**
+     * Google sign-in. Identity comes only from the verified Google ID token.
+     * An email that already has a password account is refused rather than auto-linked:
+     * local emails aren't verified yet, so auto-linking would let someone who registered
+     * a victim's email first take over the victim's Google sign-in (account pre-hijacking).
+     */
+    public Map<String, String> oauthSync(String idToken) {
+        GoogleIdentity identity = googleTokenVerifier.verify(idToken)
+            .orElseThrow(InvalidGoogleTokenException::new);
 
-    if (user == null) {
-        // Not found by googleId — check if this email already has a local account
-        user = userRepository.findByEmail(email).orElse(null);
+        // Fast path: returning Google user
+        User user = userRepository.findByGoogleId(identity.googleId()).orElse(null);
 
-        if (user != null) {
-            // Auto-link: attach Google identity to the existing local account
-            user.setGoogleId(googleId);
-            userRepository.save(user);
-        } else {
+        if (user == null) {
+            if (userRepository.findByEmail(identity.email()).isPresent()) {
+                throw new EmailAlreadyRegisteredException();
+            }
             // Brand new user, Google-only, no password
             user = new User();
-            user.setEmail(email);
-            user.setGoogleId(googleId);
+            user.setEmail(identity.email());
+            user.setGoogleId(identity.googleId());
             user.setProvider(AuthProvider.GOOGLE);
             user = userRepository.save(user);
         }
-    }
 
-    String token = jwtUtil.generateToken(user.getId(), user.getRole());
-    return Map.of("userId", user.getId(), "token", token);
-}
+        String token = jwtUtil.generateToken(user.getId(), user.getRole());
+        return Map.of("userId", user.getId(), "token", token);
+    }
 }

@@ -96,7 +96,7 @@ class EndpointAuthMatrixTest {
         new Route(HttpMethod.POST, "/api/auth/register", "/api/auth/register", Access.PUBLIC, CREDENTIALS_BODY),
         new Route(HttpMethod.POST, "/api/auth/login", "/api/auth/login", Access.PUBLIC, CREDENTIALS_BODY),
         new Route(HttpMethod.POST, "/api/auth/oauth-sync", "/api/auth/oauth-sync", Access.PUBLIC,
-            "{\"email\":\"someone@example.com\",\"name\":\"Someone\",\"googleId\":\"google-1\"}"),
+            "{\"idToken\":\"google-id-token\"}"),
 
         new Route(HttpMethod.POST, "/api/sightings", "/api/sightings", Access.AUTHENTICATED, SIGHTING_BODY),
         new Route(HttpMethod.POST, "/api/sightings/{id}/confirm", "/api/sightings/sighting-1/confirm",
@@ -161,7 +161,7 @@ class EndpointAuthMatrixTest {
         when(contactService.updateContact(anyString(), anyString(), any(), any(), any())).thenReturn(new Contact());
         when(authService.register(any(), any())).thenReturn(Map.of("token", "t"));
         when(authService.login(any(), any())).thenReturn(Map.of("token", "t"));
-        when(authService.oauthSync(any(), any(), any())).thenReturn(Map.of("token", "t"));
+        when(authService.oauthSync(any())).thenReturn(Map.of("token", "t"));
     }
 
     // ── 1. Coverage ────────────────────────────────────────────────────────
