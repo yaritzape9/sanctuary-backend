@@ -7,6 +7,7 @@ com/sanctuary/sanctuary_backend/controller/PanicController.class
 com/sanctuary/sanctuary_backend/service/ContactService.class
 com/sanctuary/sanctuary_backend/model/Relationship.class
 com/sanctuary/sanctuary_backend/exception/DuplicateConfirmationException.class
+com/sanctuary/sanctuary_backend/exception/InvalidGoogleTokenException.class
 com/sanctuary/sanctuary_backend/service/SightingService.class
 com/sanctuary/sanctuary_backend/config/WebSocketConfig.class
 com/sanctuary/sanctuary_backend/controller/SightingController.class
@@ -18,14 +19,18 @@ com/sanctuary/sanctuary_backend/service/SmsSender.class
 com/sanctuary/sanctuary_backend/controller/DevAuthController$TokenRequest.class
 com/sanctuary/sanctuary_backend/controller/ContactController$AddContactRequest.class
 com/sanctuary/sanctuary_backend/service/PanicService.class
+com/sanctuary/sanctuary_backend/exception/EmailAlreadyRegisteredException.class
+com/sanctuary/sanctuary_backend/config/GoogleTokenVerifier.class
 com/sanctuary/sanctuary_backend/service/AuthService.class
 com/sanctuary/sanctuary_backend/config/JwtUtil.class
+com/sanctuary/sanctuary_backend/dto/CreateSightingRequest.class
 com/sanctuary/sanctuary_backend/controller/AuthController.class
 com/sanctuary/sanctuary_backend/SanctuaryBackendApplication.class
 com/sanctuary/sanctuary_backend/model/AuthProvider.class
 com/sanctuary/sanctuary_backend/exception/UnauthorizedSightingActionException.class
 com/sanctuary/sanctuary_backend/controller/ContactController$UpdateContactRequest.class
 com/sanctuary/sanctuary_backend/exception/ApiException.class
+com/sanctuary/sanctuary_backend/config/GoogleTokenVerifier$GoogleIdentity.class
 com/sanctuary/sanctuary_backend/controller/PanicController$TriggerRequest.class
 com/sanctuary/sanctuary_backend/service/DevAuthService.class
 com/sanctuary/sanctuary_backend/repository/ContactRepository.class

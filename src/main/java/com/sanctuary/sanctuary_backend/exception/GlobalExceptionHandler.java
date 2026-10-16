@@ -3,12 +3,15 @@ package com.sanctuary.sanctuary_backend.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.http.MediaType;
 import lombok.extern.slf4j.Slf4j;
 import java.time.Instant;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
@@ -40,6 +43,19 @@ public class GlobalExceptionHandler {
         UnauthorizedSightingActionException ex, HttpServletRequest request
     ) {
         return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request);
+    }
+
+    // Names the bad fields only; never echoes the submitted values back
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidation(
+            MethodArgumentNotValidException ex, HttpServletRequest request) {
+        String fields = ex.getBindingResult().getFieldErrors().stream()
+                .map(FieldError::getField)
+                .distinct()
+                .sorted()
+                .collect(Collectors.joining(", "));
+        log.warn("Validation failed at [{}] on fields: {}", request.getRequestURI(), fields);
+        return buildResponse(HttpStatus.BAD_REQUEST, "Invalid fields: " + fields, request);
     }
 
     @ExceptionHandler(Exception.class)
