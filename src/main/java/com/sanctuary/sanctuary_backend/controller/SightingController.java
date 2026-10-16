@@ -1,8 +1,10 @@
 package com.sanctuary.sanctuary_backend.controller;
 
+import com.sanctuary.sanctuary_backend.dto.CreateSightingRequest;
 import com.sanctuary.sanctuary_backend.dto.SightingResponse;
 import com.sanctuary.sanctuary_backend.model.Sighting;
 import com.sanctuary.sanctuary_backend.service.SightingService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -26,10 +28,11 @@ public class SightingController {
 
     @PostMapping
     public ResponseEntity<SightingResponse> create(
-        @RequestBody Sighting sighting,
+        @Valid @RequestBody CreateSightingRequest request,
         Authentication authentication
     ) {
-        sighting.setReportedBy(authentication.getName());
+        // Bound to a DTO, not the entity, so clients can't set server-owned fields
+        Sighting sighting = request.toSighting(authentication.getName());
         return ResponseEntity.ok(SightingResponse.from(service.create(sighting)));
     }
 

@@ -9,6 +9,7 @@
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/service/AuthService.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/config/JwtAuthFilter.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/service/ContactService.java
+/Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/config/GoogleTokenVerifier.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/SanctuaryBackendApplication.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/exception/DuplicateConfirmationException.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/config/SecurityConfig.java
@@ -28,8 +29,11 @@
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/exception/GlobalExceptionHandler.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/config/WebSocketConfig.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/model/Sighting.java
+/Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/exception/InvalidGoogleTokenException.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/model/User.java
+/Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/exception/EmailAlreadyRegisteredException.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/service/DevAuthService.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/config/StompAuthInterceptor.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/controller/DevAuthController.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/controller/AuthController.java
+/Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/dto/CreateSightingRequest.java
