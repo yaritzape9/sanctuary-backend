@@ -16,13 +16,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -97,6 +100,35 @@ class SightingControllerTest {
         assertThat(saved.getDescription()).isEqualTo("two vans");
         assertThat(saved.getLat()).isEqualTo(40.7);
         assertThat(saved.getLng()).isEqualTo(-74.0);
+    }
+
+    @Test
+    void getAll_publicListDoesNotExposeReporter() throws Exception {
+        Sighting s = new Sighting();
+        s.setId("sighting-1");
+        s.setLocation("Main St");
+        s.setReportedBy("reporter-user-id");
+        s.setConfirmations(new ArrayList<>(List.of("confirmer-user-id")));
+        when(service.getAll()).thenReturn(List.of(s));
+
+        // No principal: GET /api/sightings is public
+        mockMvc.perform(get("/api/sightings"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].id").value("sighting-1"))
+            .andExpect(jsonPath("$[0].reportedBy").doesNotExist())
+            .andExpect(jsonPath("$[0].confirmations").doesNotExist());
+    }
+
+    @Test
+    void create_responseDoesNotEchoReporter() throws Exception {
+        when(service.create(any(Sighting.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        mockMvc.perform(post("/api/sightings")
+                .principal(reporter)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body("Main St", "two vans", 40.7, -74.0)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.reportedBy").doesNotExist());
     }
 
     @Test
