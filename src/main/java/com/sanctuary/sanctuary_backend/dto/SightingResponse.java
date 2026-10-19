@@ -14,8 +14,8 @@ public class SightingResponse {
     private Double lng;
     private String status;
     private LocalDateTime createdAt;
-    private String reportedBy;
     // confirmations intentionally excluded — exposes threshold if visible
+    // reportedBy intentionally excluded — GET /api/sightings is public, so it would link reports to accounts
 
     public static SightingResponse from(Sighting s) {
         SightingResponse dto = new SightingResponse();
@@ -26,7 +26,6 @@ public class SightingResponse {
         dto.setLng(s.getLng());
         dto.setStatus(s.getStatus());
         dto.setCreatedAt(s.getCreatedAt());
-        dto.setReportedBy(s.getReportedBy());
         return dto;
     }
 }

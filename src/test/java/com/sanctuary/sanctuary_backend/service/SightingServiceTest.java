@@ -1,11 +1,13 @@
 package com.sanctuary.sanctuary_backend.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sanctuary.sanctuary_backend.model.Sighting;
 import com.sanctuary.sanctuary_backend.repository.SightingRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import com.sanctuary.sanctuary_backend.dto.SightingResponse;
 import static org.mockito.ArgumentMatchers.eq;
@@ -100,6 +102,22 @@ class SightingServiceTest {
         verify(messagingTemplate, times(1))
             .convertAndSend(eq("/topic/sightings/delete"), any(SightingResponse.class));
     }
+    @Test
+    void confirm_broadcastPayloadDoesNotIdentifyReporterOrConfirmers() throws Exception {
+        when(repo.findById("sighting-1")).thenReturn(Optional.of(sighting));
+        when(repo.save(any(Sighting.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.confirm("sighting-1", "user-confirmer");
+
+        // WebSocket subscribers get whatever Jackson makes of this object
+        ArgumentCaptor<SightingResponse> captor = ArgumentCaptor.forClass(SightingResponse.class);
+        verify(messagingTemplate).convertAndSend(eq("/topic/sightings/confirm"), captor.capture());
+        String json = new ObjectMapper().findAndRegisterModules().writeValueAsString(captor.getValue());
+
+        assertFalse(json.contains("user-reporter"), json);
+        assertFalse(json.contains("user-confirmer"), json);
+    }
+
     @Test
     void confirm_throwsWhenSightingNotFound() {
         when(repo.findById("missing-id")).thenReturn(Optional.empty());
