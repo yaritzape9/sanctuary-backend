@@ -4,14 +4,17 @@ import com.sanctuary.sanctuary_backend.config.GoogleTokenVerifier;
 import com.sanctuary.sanctuary_backend.config.GoogleTokenVerifier.GoogleIdentity;
 import com.sanctuary.sanctuary_backend.config.JwtUtil;
 import com.sanctuary.sanctuary_backend.exception.EmailAlreadyRegisteredException;
+import com.sanctuary.sanctuary_backend.exception.InvalidCredentialsException;
 import com.sanctuary.sanctuary_backend.exception.InvalidGoogleTokenException;
 import com.sanctuary.sanctuary_backend.model.AuthProvider;
 import com.sanctuary.sanctuary_backend.model.User;
 import com.sanctuary.sanctuary_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Locale;
 import java.util.Map;
 
 @Service
@@ -23,10 +26,12 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final GoogleTokenVerifier googleTokenVerifier;
 
-    public Map<String, String> register(String email, String password) {
+    public Map<String, String> register(String rawEmail, String password) {
+        String email = normalizeEmail(rawEmail);
+
         // Block duplicate emails before saving
         if (userRepository.findByEmail(email).isPresent()) {
-            throw new RuntimeException("Email already in use");
+            throw new EmailAlreadyRegisteredException();
         }
 
         User user = new User();
@@ -35,7 +40,14 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(password));
         user.setProvider(AuthProvider.LOCAL);
 
-        User saved = userRepository.save(user);
+        User saved;
+        try {
+            saved = userRepository.save(user);
+        } catch (DataIntegrityViolationException ex) {
+            // Two signups raced past the check above. The exception text holds SQL,
+            // so it must not reach the generic handler that echoes messages.
+            throw new EmailAlreadyRegisteredException();
+        }
 
         // Return userId + token so the frontend can start making authenticated requests immediately
         String token = jwtUtil.generateToken(saved.getId(), saved.getRole());
@@ -43,16 +55,16 @@ public class AuthService {
     }
 
     public Map<String, String> login(String email, String password) {
-        User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+        User user = userRepository.findByEmail(normalizeEmail(email))
+            .orElseThrow(InvalidCredentialsException::new);
 
         if (user.getPassword() == null) {
-            throw new RuntimeException("This account uses Google sign-in. Please log in with Google.");
+            throw new InvalidCredentialsException("This account uses Google sign-in. Please log in with Google.");
         }
 
-        // Compare submitted password against the stored hash
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
+        // Compare submitted password against the stored hash (matches() throws on null)
+        if (password == null || !passwordEncoder.matches(password, user.getPassword())) {
+            throw new InvalidCredentialsException();
         }
 
         String token = jwtUtil.generateToken(user.getId(), user.getRole());
@@ -73,12 +85,13 @@ public class AuthService {
         User user = userRepository.findByGoogleId(identity.googleId()).orElse(null);
 
         if (user == null) {
-            if (userRepository.findByEmail(identity.email()).isPresent()) {
+            String email = normalizeEmail(identity.email());
+            if (userRepository.findByEmail(email).isPresent()) {
                 throw new EmailAlreadyRegisteredException();
             }
             // Brand new user, Google-only, no password
             user = new User();
-            user.setEmail(identity.email());
+            user.setEmail(email);
             user.setGoogleId(identity.googleId());
             user.setProvider(AuthProvider.GOOGLE);
             user = userRepository.save(user);
@@ -86,5 +99,11 @@ public class AuthService {
 
         String token = jwtUtil.generateToken(user.getId(), user.getRole());
         return Map.of("userId", user.getId(), "token", token);
+    }
+
+    // One account per address: A@x.com and a@x.com are the same person.
+    // Login's body is still an unvalidated map, so email can be null here.
+    private static String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
     }
 }

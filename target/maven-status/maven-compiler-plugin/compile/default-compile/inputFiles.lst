@@ -5,6 +5,7 @@
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/exception/SightingNotFoundException.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/config/TwilioConfig.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/model/Role.java
+/Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/exception/InvalidCredentialsException.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/exception/UnauthorizedSightingActionException.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/service/AuthService.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/config/JwtAuthFilter.java
@@ -16,6 +17,7 @@
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/service/PanicService.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/service/TwilioSmsSender.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/dto/SightingResponse.java
+/Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/dto/RegisterRequest.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/exception/ErrorResponse.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/controller/SightingController.java
 /Users/yaritza/Documents/gitprojects/sanctuary-backend/src/main/java/com/sanctuary/sanctuary_backend/controller/PanicController.java

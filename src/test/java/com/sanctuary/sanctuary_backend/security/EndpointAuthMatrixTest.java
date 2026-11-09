@@ -88,7 +88,7 @@ class EndpointAuthMatrixTest {
     private static final String SIGHTING_BODY =
         "{\"location\":\"Main St\",\"description\":\"Two vans\",\"lat\":1.0,\"lng\":2.0}";
     private static final String CREDENTIALS_BODY =
-        "{\"email\":\"someone@example.com\",\"password\":\"password\"}";
+        "{\"email\":\"someone@example.com\",\"password\":\"long-enough-password\"}";
 
     // Add every new route here. everyMappedRouteIsInTheMatrix fails until you do.
     static final List<Route> MATRIX = List.of(
