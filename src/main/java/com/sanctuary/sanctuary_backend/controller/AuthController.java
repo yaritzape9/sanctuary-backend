@@ -1,8 +1,11 @@
 package com.sanctuary.sanctuary_backend.controller;
 
+import com.sanctuary.sanctuary_backend.dto.RegisterRequest;
 import com.sanctuary.sanctuary_backend.exception.EmailAlreadyRegisteredException;
+import com.sanctuary.sanctuary_backend.exception.InvalidCredentialsException;
 import com.sanctuary.sanctuary_backend.exception.InvalidGoogleTokenException;
 import com.sanctuary.sanctuary_backend.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +22,8 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> register(@RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(authService.register(
-            body.get("email"),
-            body.get("password")
-        ));
+    public ResponseEntity<Map<String, String>> register(@Valid @RequestBody RegisterRequest request) {
+        return ResponseEntity.ok(authService.register(request.email(), request.password()));
     }
 
     @PostMapping("/login")
@@ -42,6 +42,11 @@ public class AuthController {
     // Handled here so they can't be swallowed by the generic RuntimeException advice
     @ExceptionHandler(InvalidGoogleTokenException.class)
     public ResponseEntity<Map<String, String>> handleInvalidGoogleToken(InvalidGoogleTokenException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidCredentials(InvalidCredentialsException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", ex.getMessage()));
     }
 

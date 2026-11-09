@@ -4,6 +4,7 @@ import com.sanctuary.sanctuary_backend.config.GoogleTokenVerifier;
 import com.sanctuary.sanctuary_backend.config.GoogleTokenVerifier.GoogleIdentity;
 import com.sanctuary.sanctuary_backend.config.JwtUtil;
 import com.sanctuary.sanctuary_backend.exception.EmailAlreadyRegisteredException;
+import com.sanctuary.sanctuary_backend.exception.InvalidCredentialsException;
 import com.sanctuary.sanctuary_backend.exception.InvalidGoogleTokenException;
 import com.sanctuary.sanctuary_backend.model.AuthProvider;
 import com.sanctuary.sanctuary_backend.model.User;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Map;
@@ -75,13 +77,84 @@ class AuthServiceTest {
         when(userRepository.findByEmail("taken@test.com"))
             .thenReturn(Optional.of(new User()));
 
-        assertThrows(RuntimeException.class, () ->
+        assertThrows(EmailAlreadyRegisteredException.class, () ->
             authService.register("taken@test.com", "password123"));
 
         verify(userRepository, never()).save(any());
     }
 
+    @Test
+    void register_lowercasesAndTrimsEmail_beforeCheckingAndSaving() {
+        when(userRepository.findByEmail("new@test.com")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("password123")).thenReturn("hashed-password");
+        User saved = new User();
+        saved.setId("user-1");
+        when(userRepository.save(any(User.class))).thenReturn(saved);
+
+        authService.register(" New@Test.COM ", "password123");
+
+        verify(userRepository).findByEmail("new@test.com");
+        verify(userRepository).save(argThat(u -> u.getEmail().equals("new@test.com")));
+    }
+
+    @Test
+    void register_refusesEmailThatDiffersOnlyByCase() {
+        when(userRepository.findByEmail("taken@test.com")).thenReturn(Optional.of(new User()));
+
+        assertThrows(EmailAlreadyRegisteredException.class, () ->
+            authService.register("TAKEN@test.com", "password123"));
+
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void register_treatsUniqueConstraintRaceAsDuplicate_withoutSqlInTheMessage() {
+        when(userRepository.findByEmail("race@test.com")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("password123")).thenReturn("hashed-password");
+        when(userRepository.save(any(User.class)))
+            .thenThrow(new DataIntegrityViolationException("duplicate key users_email_key (race@test.com)"));
+
+        EmailAlreadyRegisteredException ex = assertThrows(EmailAlreadyRegisteredException.class, () ->
+            authService.register("race@test.com", "password123"));
+
+        assertFalse(ex.getMessage().contains("users_email_key"));
+        assertFalse(ex.getMessage().contains("race@test.com"));
+    }
+
     // ---------- login ----------
+
+    @Test
+    void login_matchesAccountRegardlessOfEmailCase() {
+        User user = new User();
+        user.setId("user-1");
+        user.setPassword("hashed-password");
+        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("password123", "hashed-password")).thenReturn(true);
+
+        Map<String, String> result = authService.login("User@Test.com", "password123");
+
+        assertEquals("user-1", result.get("userId"));
+    }
+
+    @Test
+    void login_withMissingEmail_isInvalidCredentials() {
+        when(userRepository.findByEmail(null)).thenReturn(Optional.empty());
+
+        InvalidCredentialsException ex = assertThrows(InvalidCredentialsException.class, () ->
+            authService.login(null, "password123"));
+
+        assertEquals("Invalid credentials", ex.getMessage());
+    }
+
+    @Test
+    void login_withMissingPassword_isInvalidCredentials() {
+        User user = new User();
+        user.setPassword("hashed-password");
+        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(user));
+
+        assertThrows(InvalidCredentialsException.class, () ->
+            authService.login("user@test.com", null));
+    }
 
     @Test
     void login_returnsToken_whenCredentialsValid() {
@@ -199,5 +272,16 @@ class AuthServiceTest {
             u.getGoogleId().equals("google-123") &&
             u.getProvider() == AuthProvider.GOOGLE
         ));
+    }
+
+    @Test
+    void oauthSync_refusesExistingAccountWhoseEmailDiffersOnlyByCase() {
+        googleVerifies("valid-token", "google-123", "User@Test.com");
+        when(userRepository.findByGoogleId("google-123")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(new User()));
+
+        assertThrows(EmailAlreadyRegisteredException.class, () -> authService.oauthSync("valid-token"));
+
+        verify(userRepository, never()).save(any());
     }
 }
