@@ -84,7 +84,7 @@ class EndpointAuthMatrixTest {
     }
 
     private static final String CONTACT_BODY =
-        "{\"name\":\"Mom\",\"phone\":\"+15551234567\",\"relationship\":\"PARENT\"}";
+        "{\"name\":\"Mom\",\"phone\":\"+12125550123\",\"relationship\":\"PARENT\"}";
     private static final String SIGHTING_BODY =
         "{\"location\":\"Main St\",\"description\":\"Two vans\",\"lat\":1.0,\"lng\":2.0}";
     private static final String CREDENTIALS_BODY =

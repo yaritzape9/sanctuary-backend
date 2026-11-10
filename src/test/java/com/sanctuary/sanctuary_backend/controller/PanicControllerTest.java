@@ -1,5 +1,7 @@
 package com.sanctuary.sanctuary_backend.controller;
 
+import com.fasterxml.jackson.databind.node.DoubleNode;
+import com.sanctuary.sanctuary_backend.dto.PanicTriggerRequest;
 import com.sanctuary.sanctuary_backend.service.PanicService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,9 +32,8 @@ class PanicControllerTest {
         Authentication authentication = new UsernamePasswordAuthenticationToken(
             "real-authenticated-user", null, Collections.emptyList()
         );
-        PanicController.TriggerRequest request = new PanicController.TriggerRequest();
-        request.setLat(37.7749);
-        request.setLng(-122.4194);
+        PanicTriggerRequest request = new PanicTriggerRequest(
+            DoubleNode.valueOf(37.7749), DoubleNode.valueOf(-122.4194));
 
         ResponseEntity<String> response = panicController.trigger(request, authentication);
 
@@ -43,16 +44,14 @@ class PanicControllerTest {
 
     @Test
     void trigger_cannotBeSpoofedViaRequestBody() {
-        // Regression guard: TriggerRequest no longer has a userId field at all,
+        // Regression guard: PanicTriggerRequest has no userId field at all,
         // so there is no way for a client to supply one. This test documents
         // that guarantee by confirming the service is called with the
         // authenticated principal regardless of what's in the request.
         Authentication authentication = new UsernamePasswordAuthenticationToken(
             "victim-user-id", null, Collections.emptyList()
         );
-        PanicController.TriggerRequest request = new PanicController.TriggerRequest();
-        request.setLat(1.0);
-        request.setLng(2.0);
+        PanicTriggerRequest request = new PanicTriggerRequest(DoubleNode.valueOf(1.0), DoubleNode.valueOf(2.0));
 
         panicController.trigger(request, authentication);
 

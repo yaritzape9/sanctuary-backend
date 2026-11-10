@@ -1,5 +1,7 @@
 package com.sanctuary.sanctuary_backend.controller;
 
+import com.sanctuary.sanctuary_backend.dto.LoginRequest;
+import com.sanctuary.sanctuary_backend.dto.OAuthSyncRequest;
 import com.sanctuary.sanctuary_backend.dto.RegisterRequest;
 import com.sanctuary.sanctuary_backend.exception.EmailAlreadyRegisteredException;
 import com.sanctuary.sanctuary_backend.exception.InvalidCredentialsException;
@@ -27,16 +29,14 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(authService.login(
-            body.get("email"),
-            body.get("password")
-        ));
+    public ResponseEntity<Map<String, String>> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.login(request.email(), request.password()));
     }
+
     // Only the Google ID token is read; email/googleId in the body are ignored
     @PostMapping("/oauth-sync")
-    public ResponseEntity<Map<String, String>> oauthSync(@RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(authService.oauthSync(body.get("idToken")));
+    public ResponseEntity<Map<String, String>> oauthSync(@Valid @RequestBody OAuthSyncRequest request) {
+        return ResponseEntity.ok(authService.oauthSync(request.idToken()));
     }
 
     // Handled here so they can't be swallowed by the generic RuntimeException advice

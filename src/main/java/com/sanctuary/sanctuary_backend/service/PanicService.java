@@ -12,6 +12,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PanicService {
 
+    static final String NO_LOCATION_TEXT = "Their location could not be shared.";
+
     private final ContactService contactService;
     private final SmsSender smsSender;
 
@@ -23,8 +25,11 @@ public class PanicService {
             return;
         }
 
-        String locationUrl = "https://maps.google.com/?q=" + lat + "," + lng;
-        String body = "🆘 " + userId + " has triggered their Sanctuary panic button and may need help. Location: " + locationUrl;
+        // Never send a "?q=null,null" link: say plainly that the location didn't come through
+        String location = (lat == null || lng == null)
+            ? NO_LOCATION_TEXT
+            : "Location: https://maps.google.com/?q=" + lat + "," + lng;
+        String body = "🆘 " + userId + " has triggered their Sanctuary panic button and may need help. " + location;
 
         sendToAll(contacts, body);
     }
