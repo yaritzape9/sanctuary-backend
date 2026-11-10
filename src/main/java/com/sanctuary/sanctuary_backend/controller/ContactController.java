@@ -1,9 +1,9 @@
 package com.sanctuary.sanctuary_backend.controller;
 
+import com.sanctuary.sanctuary_backend.dto.ContactRequest;
 import com.sanctuary.sanctuary_backend.model.Contact;
-import com.sanctuary.sanctuary_backend.model.Relationship;
 import com.sanctuary.sanctuary_backend.service.ContactService;
-import lombok.Data;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -27,14 +27,14 @@ public class ContactController {
 
     @PostMapping
     public ResponseEntity<?> addContact(
-            @RequestBody AddContactRequest request,
+            @Valid @RequestBody ContactRequest request,
             Authentication authentication) {
         try {
             Contact saved = contactService.addContact(
                 authentication.getName(),
-                request.getName(),
-                request.getPhone(),
-                request.getRelationship()
+                request.name(),
+                request.phone(),
+                request.relationship()
             );
             return ResponseEntity.ok(saved);
         } catch (IllegalStateException e) {
@@ -45,15 +45,15 @@ public class ContactController {
     @PutMapping("/{contactId}")
     public ResponseEntity<?> updateContact(
             @PathVariable String contactId,
-            @RequestBody UpdateContactRequest request,
+            @Valid @RequestBody ContactRequest request,
             Authentication authentication) {
         try {
             Contact updated = contactService.updateContact(
                 contactId,
                 authentication.getName(),
-                request.getName(),
-                request.getPhone(),
-                request.getRelationship()
+                request.name(),
+                request.phone(),
+                request.relationship()
             );
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
@@ -75,19 +75,5 @@ public class ContactController {
         } catch (SecurityException e) {
             return ResponseEntity.status(403).body(e.getMessage());
         }
-    }
-
-    @Data
-    static class AddContactRequest {
-        private String name;
-        private String phone;
-        private Relationship relationship;
-    }
-
-    @Data
-    static class UpdateContactRequest {
-        private String name;
-        private String phone;
-        private Relationship relationship;
     }
 }

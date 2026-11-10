@@ -5,6 +5,7 @@ import com.sanctuary.sanctuary_backend.model.Contact;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -12,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Collections;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -24,6 +26,9 @@ class PanicServiceTest {
 
     @Mock
     private TwilioConfig twilioConfig;
+
+    @Mock
+    private SmsSender smsSender;
 
     @InjectMocks
     private PanicService panicService;
@@ -81,5 +86,35 @@ class PanicServiceTest {
         assertDoesNotThrow(() -> panicService.sendAllClear(USER_ID));
 
         verify(contactService).getContacts(USER_ID);
+    }
+
+    @Test
+    void triggerAlert_withLocation_sendsMapLink() {
+        Contact contact = mock(Contact.class);
+        when(contact.getPhone()).thenReturn("+12125550111");
+        when(contactService.getContacts(USER_ID)).thenReturn(List.of(contact));
+
+        panicService.triggerAlert(USER_ID, 37.7749, -122.4194);
+
+        assertThat(sentBody()).contains("Location: https://maps.google.com/?q=37.7749,-122.4194");
+    }
+
+    @Test
+    void triggerAlert_withoutLocation_saysItCouldNotBeShared_andNeverSendsNullLink() {
+        Contact contact = mock(Contact.class);
+        when(contact.getPhone()).thenReturn("+12125550111");
+        when(contactService.getContacts(USER_ID)).thenReturn(List.of(contact));
+
+        panicService.triggerAlert(USER_ID, null, null);
+
+        String body = sentBody();
+        assertThat(body).contains("Their location could not be shared.");
+        assertThat(body).doesNotContain("null").doesNotContain("maps.google.com");
+    }
+
+    private String sentBody() {
+        ArgumentCaptor<String> body = ArgumentCaptor.forClass(String.class);
+        verify(smsSender).send(eq("+12125550111"), body.capture());
+        return body.getValue();
     }
 }

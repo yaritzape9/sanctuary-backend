@@ -69,9 +69,9 @@ class AuthControllerTest {
     }
 
     @Test
-    void oauthSync_returns401_whenIdTokenIsMissing() throws Exception {
-        when(authService.oauthSync(null)).thenThrow(new InvalidGoogleTokenException());
+    void oauthSync_returns400_whenIdTokenIsMissing_beforeReachingTheService() throws Exception {
+        postOauthSync("{\"email\":\"victim@test.com\",\"googleId\":\"victim-google\"}", 400);
 
-        postOauthSync("{\"email\":\"victim@test.com\",\"googleId\":\"victim-google\"}", 401);
+        verify(authService, never()).oauthSync(any());
     }
 }
