@@ -2,10 +2,13 @@ package com.sanctuary.sanctuary_backend.controller;
 
 import com.sanctuary.sanctuary_backend.config.JwtUtil;
 import com.sanctuary.sanctuary_backend.config.SecurityConfig;
+import com.sanctuary.sanctuary_backend.dto.PanicResult;
 import com.sanctuary.sanctuary_backend.model.Role;
 import com.sanctuary.sanctuary_backend.service.PanicService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -16,15 +19,20 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * A panic must never be rejected because of its location. Missing, partial, out-of-range or
- * non-numeric coordinates still send the alert, with no location.
+ * non-numeric coordinates still send the alert, with no location. The response says truthfully
+ * whether the texts went out: 200 sent/partial, 502 failed (safe to retry), 422 no contacts.
  */
 @WebMvcTest(PanicController.class)
 @Import({SecurityConfig.class, JwtUtil.class})
@@ -41,6 +49,12 @@ class PanicTriggerWebMvcTest {
 
     @MockBean
     private PanicService panicService;
+
+    @BeforeEach
+    void stubService() {
+        when(panicService.triggerAlert(anyString(), any(), any())).thenReturn(new PanicResult(1, 0));
+        when(panicService.sendAllClear(anyString())).thenReturn(new PanicResult(1, 0));
+    }
 
     private MockHttpServletRequestBuilder trigger() {
         return post("/api/panic/trigger")
@@ -93,5 +107,41 @@ class PanicTriggerWebMvcTest {
             .andExpect(status().isOk());
 
         verify(panicService).triggerAlert(eq(USER_ID), isNull(), isNull());
+    }
+
+    // sent, failed -> HTTP status and body status
+    @ParameterizedTest
+    @CsvSource({
+        "2, 0, 200, sent",
+        "1, 1, 200, partial",
+        "0, 2, 502, failed",
+        "0, 0, 422, no_contacts"
+    })
+    void trigger_reportsWhatActuallyHappened(int sent, int failed, int httpStatus, String bodyStatus) throws Exception {
+        when(panicService.triggerAlert(anyString(), any(), any())).thenReturn(new PanicResult(sent, failed));
+
+        mockMvc.perform(trigger("{}"))
+            .andExpect(status().is(httpStatus))
+            .andExpect(jsonPath("$.status").value(bodyStatus))
+            .andExpect(jsonPath("$.sent").value(sent))
+            .andExpect(jsonPath("$.failed").value(failed));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "2, 0, 200, sent",
+        "1, 1, 200, partial",
+        "0, 2, 502, failed",
+        "0, 0, 422, no_contacts"
+    })
+    void safe_reportsWhatActuallyHappened(int sent, int failed, int httpStatus, String bodyStatus) throws Exception {
+        when(panicService.sendAllClear(anyString())).thenReturn(new PanicResult(sent, failed));
+
+        mockMvc.perform(post("/api/panic/safe")
+                .header("Authorization", "Bearer " + jwtUtil.generateToken(USER_ID, Role.USER)))
+            .andExpect(status().is(httpStatus))
+            .andExpect(jsonPath("$.status").value(bodyStatus))
+            .andExpect(jsonPath("$.sent").value(sent))
+            .andExpect(jsonPath("$.failed").value(failed));
     }
 }

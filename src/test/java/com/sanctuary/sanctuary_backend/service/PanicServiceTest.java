@@ -1,6 +1,7 @@
 package com.sanctuary.sanctuary_backend.service;
 
 import com.sanctuary.sanctuary_backend.config.TwilioConfig;
+import com.sanctuary.sanctuary_backend.dto.PanicResult;
 import com.sanctuary.sanctuary_backend.model.Contact;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,8 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,65 +34,84 @@ class PanicServiceTest {
     private PanicService panicService;
 
     private static final String USER_ID = "user-123";
+    private static final String PHONE_1 = "+12125550111";
+    private static final String PHONE_2 = "+12125550122";
 
     @BeforeEach
     void setUp() {
         lenient().when(twilioConfig.getPhoneNumber()).thenReturn("+15555550100");
     }
 
+    // ── No contacts ────────────────────────────────────────────────────────
+
     @Test
-    void triggerAlert_noContacts_returnsSilently() {
+    void triggerAlert_noContacts_returnsNoContacts_andSendsNothing() {
         when(contactService.getContacts(USER_ID)).thenReturn(Collections.emptyList());
 
-        assertDoesNotThrow(() -> panicService.triggerAlert(USER_ID, 37.7749, -122.4194));
+        PanicResult result = panicService.triggerAlert(USER_ID, 37.7749, -122.4194);
 
-        verify(contactService).getContacts(USER_ID);
+        assertThat(result.status()).isEqualTo("no_contacts");
+        verifyNoInteractions(smsSender);
     }
 
     @Test
-    void triggerAlert_withContacts_fetchesContactsAndDoesNotThrow() {
-        Contact contact = mock(Contact.class);
-        when(contact.getPhone()).thenReturn("+15555550111");
-        when(contactService.getContacts(USER_ID)).thenReturn(List.of(contact));
-
-        // The real Twilio SMS call happens inside sendToAll but is caught internally
-        // per-contact, so this should never throw even without a live Twilio config.
-        assertDoesNotThrow(() -> panicService.triggerAlert(USER_ID, 37.7749, -122.4194));
-
-        verify(contactService).getContacts(USER_ID);
-    }
-
-    @Test
-    void sendAllClear_noContacts_throwsRuntimeException() {
+    void sendAllClear_noContacts_returnsNoContacts_insteadOfThrowing() {
         when(contactService.getContacts(USER_ID)).thenReturn(Collections.emptyList());
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
-            () -> panicService.sendAllClear(USER_ID));
+        PanicResult result = panicService.sendAllClear(USER_ID);
 
-        assertDoesNotThrow(() -> {
-            if (!ex.getMessage().contains(USER_ID)) {
-                throw new AssertionError("Exception message should reference the user ID");
-            }
-        });
-        verify(contactService).getContacts(USER_ID);
+        assertThat(result.status()).isEqualTo("no_contacts");
+        verifyNoInteractions(smsSender);
+    }
+
+    // ── Send outcomes ──────────────────────────────────────────────────────
+
+    @Test
+    void triggerAlert_everyTextSent_returnsSent() {
+        givenContacts(PHONE_1, PHONE_2);
+
+        PanicResult result = panicService.triggerAlert(USER_ID, 37.7749, -122.4194);
+
+        assertThat(result).isEqualTo(new PanicResult(2, 0));
+        assertThat(result.status()).isEqualTo("sent");
     }
 
     @Test
-    void sendAllClear_withContacts_fetchesContactsAndDoesNotThrow() {
-        Contact contact = mock(Contact.class);
-        when(contact.getPhone()).thenReturn("+15555550111");
-        when(contactService.getContacts(USER_ID)).thenReturn(List.of(contact));
+    void triggerAlert_oneTextFails_returnsPartial_andStillTextsTheOthers() {
+        givenContacts(PHONE_1, PHONE_2);
+        doThrow(new RuntimeException("Twilio rejected " + PHONE_1)).when(smsSender).send(eq(PHONE_1), anyString());
 
-        assertDoesNotThrow(() -> panicService.sendAllClear(USER_ID));
+        PanicResult result = panicService.triggerAlert(USER_ID, null, null);
 
-        verify(contactService).getContacts(USER_ID);
+        assertThat(result).isEqualTo(new PanicResult(1, 1));
+        assertThat(result.status()).isEqualTo("partial");
+        verify(smsSender).send(eq(PHONE_2), anyString());
     }
+
+    @Test
+    void triggerAlert_everyTextFails_returnsFailed() {
+        givenContacts(PHONE_1, PHONE_2);
+        doThrow(new RuntimeException("Twilio down")).when(smsSender).send(anyString(), anyString());
+
+        PanicResult result = panicService.triggerAlert(USER_ID, null, null);
+
+        assertThat(result).isEqualTo(new PanicResult(0, 2));
+        assertThat(result.status()).isEqualTo("failed");
+    }
+
+    @Test
+    void sendAllClear_everyTextFails_returnsFailed() {
+        givenContacts(PHONE_1);
+        doThrow(new RuntimeException("Twilio down")).when(smsSender).send(anyString(), anyString());
+
+        assertThat(panicService.sendAllClear(USER_ID).status()).isEqualTo("failed");
+    }
+
+    // ── Message text ───────────────────────────────────────────────────────
 
     @Test
     void triggerAlert_withLocation_sendsMapLink() {
-        Contact contact = mock(Contact.class);
-        when(contact.getPhone()).thenReturn("+12125550111");
-        when(contactService.getContacts(USER_ID)).thenReturn(List.of(contact));
+        givenContacts(PHONE_1);
 
         panicService.triggerAlert(USER_ID, 37.7749, -122.4194);
 
@@ -101,9 +120,7 @@ class PanicServiceTest {
 
     @Test
     void triggerAlert_withoutLocation_saysItCouldNotBeShared_andNeverSendsNullLink() {
-        Contact contact = mock(Contact.class);
-        when(contact.getPhone()).thenReturn("+12125550111");
-        when(contactService.getContacts(USER_ID)).thenReturn(List.of(contact));
+        givenContacts(PHONE_1);
 
         panicService.triggerAlert(USER_ID, null, null);
 
@@ -112,9 +129,40 @@ class PanicServiceTest {
         assertThat(body).doesNotContain("null").doesNotContain("maps.google.com");
     }
 
+    @Test
+    void triggerAlert_messageNeverContainsTheUserId() {
+        givenContacts(PHONE_1);
+
+        panicService.triggerAlert(USER_ID, 37.7749, -122.4194);
+
+        assertThat(sentBody()).doesNotContain(USER_ID);
+    }
+
+    @Test
+    void sendAllClear_messageNeverContainsTheUserId() {
+        givenContacts(PHONE_1);
+
+        panicService.sendAllClear(USER_ID);
+
+        assertThat(sentBody()).doesNotContain(USER_ID).contains("is now safe");
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────────
+
+    private void givenContacts(String... phones) {
+        List<Contact> contacts = new java.util.ArrayList<>();
+        for (int i = 0; i < phones.length; i++) {
+            Contact contact = new Contact();
+            contact.setId("contact-" + i);
+            contact.setPhone(phones[i]);
+            contacts.add(contact);
+        }
+        when(contactService.getContacts(USER_ID)).thenReturn(contacts);
+    }
+
     private String sentBody() {
         ArgumentCaptor<String> body = ArgumentCaptor.forClass(String.class);
-        verify(smsSender).send(eq("+12125550111"), body.capture());
+        verify(smsSender).send(eq(PHONE_1), body.capture());
         return body.getValue();
     }
 }
