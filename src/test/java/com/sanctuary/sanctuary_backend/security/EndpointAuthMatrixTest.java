@@ -3,6 +3,7 @@ package com.sanctuary.sanctuary_backend.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sanctuary.sanctuary_backend.config.JwtUtil;
 import com.sanctuary.sanctuary_backend.config.SecurityConfig;
+import com.sanctuary.sanctuary_backend.dto.PanicResult;
 import com.sanctuary.sanctuary_backend.model.Contact;
 import com.sanctuary.sanctuary_backend.model.Role;
 import com.sanctuary.sanctuary_backend.model.Sighting;
@@ -159,6 +160,8 @@ class EndpointAuthMatrixTest {
         when(contactService.getContacts(anyString())).thenReturn(List.of());
         when(contactService.addContact(anyString(), any(), any(), any())).thenReturn(new Contact());
         when(contactService.updateContact(anyString(), anyString(), any(), any(), any())).thenReturn(new Contact());
+        when(panicService.triggerAlert(anyString(), any(), any())).thenReturn(new PanicResult(1, 0));
+        when(panicService.sendAllClear(anyString())).thenReturn(new PanicResult(1, 0));
         when(authService.register(any(), any())).thenReturn(Map.of("token", "t"));
         when(authService.login(any(), any())).thenReturn(Map.of("token", "t"));
         when(authService.oauthSync(any())).thenReturn(Map.of("token", "t"));
