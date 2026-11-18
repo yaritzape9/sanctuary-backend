@@ -1,5 +1,6 @@
 package com.sanctuary.sanctuary_backend.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -12,15 +13,22 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final StompAuthInterceptor stompAuthInterceptor;
+    // The only backend route a browser calls directly; REST goes through the
+    // Next.js server proxies, so it needs no CORS at all
+    private final String[] allowedOrigins;
 
-    public WebSocketConfig(StompAuthInterceptor stompAuthInterceptor) {
+    public WebSocketConfig(
+        StompAuthInterceptor stompAuthInterceptor,
+        @Value("${sanctuary.allowed-origins}") String[] allowedOrigins
+    ) {
         this.stompAuthInterceptor = stompAuthInterceptor;
+        this.allowedOrigins = allowedOrigins;
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:3000")
+                .setAllowedOrigins(allowedOrigins)
                 .withSockJS();
     }
 

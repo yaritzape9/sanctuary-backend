@@ -13,7 +13,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/sightings")
-@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class SightingController {
 
