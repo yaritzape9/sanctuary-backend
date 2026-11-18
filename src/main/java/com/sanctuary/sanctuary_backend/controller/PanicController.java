@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/panic")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
 public class PanicController {
 
     private final PanicService panicService;
