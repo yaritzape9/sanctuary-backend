@@ -4,5 +4,6 @@ set -euo pipefail
 echo "Running pre-push checks..."
 
 ./scripts/check-config-location.sh
+./scripts/check-no-build-files.sh
 
 echo "✅ Pre-push checks passed."

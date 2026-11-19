@@ -9,10 +9,9 @@ target/
 .idea/
 *.iml
 .vscode/
-*.DS_Store
+.DS_Store
 
 # Spring Boot local config overrides
-application-local.propertiestarget/
-target/
+application-local.properties
 CLAUDE.md
 
