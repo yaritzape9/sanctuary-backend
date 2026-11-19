@@ -38,10 +38,15 @@ jobs:
           chmod +x scripts/check-config-location.sh
           ./scripts/check-config-location.sh
 
+      - name: Check no build files are tracked
+        run: |
+          chmod +x scripts/check-no-build-files.sh
+          ./scripts/check-no-build-files.sh
+
       - name: Run tests
         env:
           JWT_SECRET: ci-test-secret-do-not-use-in-prod
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/sanctuary
           SPRING_DATASOURCE_USERNAME: sanctuary
-          SPRING_DATASOURCE_PASSWORD: sanctuary
+          DB_PASSWORD: sanctuary
         run: ./mvnw test
