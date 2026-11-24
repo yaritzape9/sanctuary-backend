@@ -3,12 +3,14 @@ package com.sanctuary.sanctuary_backend.controller;
 import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.sanctuary.sanctuary_backend.dto.PanicResult;
 import com.sanctuary.sanctuary_backend.dto.PanicTriggerRequest;
+import com.sanctuary.sanctuary_backend.service.IdempotencyStore;
 import com.sanctuary.sanctuary_backend.service.PanicService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,6 +31,9 @@ class PanicControllerTest {
     @Mock
     private PanicService panicService;
 
+    @Spy
+    private IdempotencyStore idempotencyStore = new IdempotencyStore();
+
     @InjectMocks
     private PanicController panicController;
 
@@ -46,7 +51,7 @@ class PanicControllerTest {
         PanicTriggerRequest request = new PanicTriggerRequest(
             DoubleNode.valueOf(37.7749), DoubleNode.valueOf(-122.4194));
 
-        ResponseEntity<PanicResult> response = panicController.trigger(request, authentication);
+        ResponseEntity<PanicResult> response = panicController.trigger(request, null, authentication);
 
         verify(panicService).triggerAlert("real-authenticated-user", 37.7749, -122.4194);
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
@@ -64,7 +69,7 @@ class PanicControllerTest {
         );
         PanicTriggerRequest request = new PanicTriggerRequest(DoubleNode.valueOf(1.0), DoubleNode.valueOf(2.0));
 
-        panicController.trigger(request, authentication);
+        panicController.trigger(request, null, authentication);
 
         verify(panicService).triggerAlert("victim-user-id", 1.0, 2.0);
         verify(panicService, never()).triggerAlert("attacker-user-id", 1.0, 2.0);
@@ -76,7 +81,7 @@ class PanicControllerTest {
             "real-authenticated-user", null, Collections.emptyList()
         );
 
-        ResponseEntity<PanicResult> response = panicController.safe(authentication);
+        ResponseEntity<PanicResult> response = panicController.safe(null, authentication);
 
         verify(panicService).sendAllClear("real-authenticated-user");
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
