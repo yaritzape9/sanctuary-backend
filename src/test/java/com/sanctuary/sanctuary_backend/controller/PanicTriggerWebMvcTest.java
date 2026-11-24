@@ -4,6 +4,7 @@ import com.sanctuary.sanctuary_backend.config.JwtUtil;
 import com.sanctuary.sanctuary_backend.config.SecurityConfig;
 import com.sanctuary.sanctuary_backend.dto.PanicResult;
 import com.sanctuary.sanctuary_backend.model.Role;
+import com.sanctuary.sanctuary_backend.service.IdempotencyStore;
 import com.sanctuary.sanctuary_backend.service.PanicService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -35,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * whether the texts went out: 200 sent/partial, 502 failed (safe to retry), 422 no contacts.
  */
 @WebMvcTest(PanicController.class)
-@Import({SecurityConfig.class, JwtUtil.class})
+@Import({SecurityConfig.class, JwtUtil.class, IdempotencyStore.class})
 @TestPropertySource(properties = "jwt.secret=panic-trigger-test-secret-long-enough-for-hs256")
 class PanicTriggerWebMvcTest {
 
@@ -125,6 +127,21 @@ class PanicTriggerWebMvcTest {
             .andExpect(jsonPath("$.status").value(bodyStatus))
             .andExpect(jsonPath("$.sent").value(sent))
             .andExpect(jsonPath("$.failed").value(failed));
+    }
+
+    @Test
+    void retryWithSameIdempotencyKey_sendsOnce_andReplaysTheResult() throws Exception {
+        when(panicService.triggerAlert(anyString(), any(), any())).thenReturn(new PanicResult(1, 1));
+        String key = "3f2a9c1e-5b7d-4e8a-9c21-7d4e5f6a8b90";
+
+        for (int i = 0; i < 2; i++) {
+            mockMvc.perform(trigger("{}").header("Idempotency-Key", key))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("partial"))
+                .andExpect(jsonPath("$.sent").value(1));
+        }
+
+        verify(panicService, times(1)).triggerAlert(anyString(), any(), any());
     }
 
     @ParameterizedTest

@@ -2,6 +2,7 @@ package com.sanctuary.sanctuary_backend.controller;
 
 import com.sanctuary.sanctuary_backend.dto.PanicResult;
 import com.sanctuary.sanctuary_backend.dto.PanicTriggerRequest;
+import com.sanctuary.sanctuary_backend.service.IdempotencyStore;
 import com.sanctuary.sanctuary_backend.service.PanicService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,23 +16,32 @@ import org.springframework.web.bind.annotation.*;
 public class PanicController {
 
     private final PanicService panicService;
+    private final IdempotencyStore idempotencyStore;
 
     // The body is optional and a bad location never rejects the request: the alert
     // always goes out, saying the location couldn't be shared when it's missing or invalid.
+    // A repeat of the same Idempotency-Key (one per button press) replays the first result
+    // instead of texting the contacts again.
     @PostMapping("/trigger")
     public ResponseEntity<PanicResult> trigger(
         @RequestBody(required = false) PanicTriggerRequest request,
+        @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
         Authentication authentication
     ) {
         String userId = authentication.getName();
         PanicTriggerRequest body = request == null ? PanicTriggerRequest.NO_LOCATION : request;
-        return toResponse(panicService.triggerAlert(userId, body.validLat(), body.validLng()));
+        return toResponse(idempotencyStore.runOnce("trigger", userId, idempotencyKey,
+            () -> panicService.triggerAlert(userId, body.validLat(), body.validLng())));
     }
 
     @PostMapping("/safe")
-    public ResponseEntity<PanicResult> safe(Authentication authentication) {
+    public ResponseEntity<PanicResult> safe(
+        @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+        Authentication authentication
+    ) {
         String userId = authentication.getName();
-        return toResponse(panicService.sendAllClear(userId));
+        return toResponse(idempotencyStore.runOnce("safe", userId, idempotencyKey,
+            () -> panicService.sendAllClear(userId)));
     }
 
     // 200 when at least one text went out (a partial send is not retried, so nobody gets

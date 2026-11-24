@@ -9,6 +9,7 @@ import com.sanctuary.sanctuary_backend.model.Role;
 import com.sanctuary.sanctuary_backend.model.Sighting;
 import com.sanctuary.sanctuary_backend.service.AuthService;
 import com.sanctuary.sanctuary_backend.service.ContactService;
+import com.sanctuary.sanctuary_backend.service.IdempotencyStore;
 import com.sanctuary.sanctuary_backend.service.PanicService;
 import com.sanctuary.sanctuary_backend.service.SightingService;
 import io.jsonwebtoken.Jwts;
@@ -63,7 +64,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Dev-only routes (/api/dev/**) are not loaded without the dev profile; see DevProfileGateTest.
  */
 @WebMvcTest
-@Import({SecurityConfig.class, JwtUtil.class})
+@Import({SecurityConfig.class, JwtUtil.class, IdempotencyStore.class})
 @TestPropertySource(properties = "jwt.secret=" + EndpointAuthMatrixTest.SECRET)
 class EndpointAuthMatrixTest {
 
